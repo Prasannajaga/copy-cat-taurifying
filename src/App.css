@@ -129,4 +129,20 @@ button {
 
 .source-theme{
   @apply px-3 py-1 bg-gray-100 dark:bg-gray-700 text-xs text-gray-600 dark:text-gray-300;
+} 
+
+@layer utilities {
+  /* Thin scrollbar for Webkit browsers (Chrome, Safari) */
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 6px; /* Adjust width */
+  }
+  
+  .thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(38, 35, 35, 0.3); /* Adjust color */
+    border-radius: 10px;
+  }
 }

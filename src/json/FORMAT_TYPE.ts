@@ -12,13 +12,13 @@ const PATTERNS = {
 };
 
 export const TYPE_COLORS : Record<string , string> = {
-    "java": "!bg-gradient-to-r !from-red-500 !to-red-700 !bg-clip-text !text-transparent",
-    "python": "!bg-gradient-to-r !from-blue-500 !to-blue-700 !bg-clip-text !text-transparent",
-    "typescript": "!bg-gradient-to-r !from-indigo-500 !to-indigo-700 !bg-clip-text !text-transparent",
-    "javascript": "!bg-gradient-to-r !from-yellow-400 !to-yellow-600 !bg-clip-text !text-transparent",
-    "text": "!bg-gradient-to-r !from-gray-500 !to-gray-700 !bg-clip-text !text-transparent",
-    "html": "!bg-gradient-to-r !from-orange-500 !to-orange-700 !bg-clip-text !text-transparent",
-    "css": "!bg-gradient-to-r !from-teal-500 !to-teal-700 !bg-clip-text !text-transparent"
+    "java": "group-hover:!bg-gradient-to-r group-hover:!from-red-500 group-hover:!to-red-700 group-hover:!bg-clip-text group-hover:!text-transparent",
+    "python": "group-hover:!bg-gradient-to-r group-hover:!from-blue-500 group-hover:!to-blue-700 group-hover:!bg-clip-text group-hover:!text-transparent",
+    "typescript": "group-hover:!bg-gradient-to-r group-hover:!from-indigo-500 group-hover:!to-indigo-700 group-hover:!bg-clip-text group-hover:!text-transparent",
+    "javascript": "group-hover:!bg-gradient-to-r group-hover:!from-yellow-400 group-hover:!to-yellow-600 group-hover:!bg-clip-text group-hover:!text-transparent",
+    "text": "group-hover:!bg-gradient-to-r group-hover:!from-gray-500 group-hover:!to-gray-700 group-hover:!bg-clip-text group-hover:!text-transparent",
+    "html": "group-hover:!bg-gradient-to-r group-hover:!from-orange-500 group-hover:!to-orange-700 group-hover:!bg-clip-text group-hover:!text-transparent",
+    "css": "group-hover:!bg-gradient-to-r group-hover:!from-teal-500 group-hover:!to-teal-700 group-hover:!bg-clip-text group-hover:!text-transparent"
 };
 
 

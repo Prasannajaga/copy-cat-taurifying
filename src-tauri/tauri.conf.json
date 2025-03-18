@@ -2,9 +2,10 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "copy-cat",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.copy-cat.org",
+  
   "build": {
-    "frontendDist": "../build",
+    "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
@@ -13,21 +14,26 @@
     "windows": [
       {
         "title": "copy-cat",
-        "transparent": true, 
         "decorations": false,
-        "alwaysOnTop": false,
-        "resizable": true,
-        "fullscreen": false,
+        "transparent": true, 
+        "alwaysOnTop": true,
         "skipTaskbar": true,
+        "resizable": true,
+        "fullscreen": false, 
+        "visible": false,
         "maximized": false, 
         "width": 400,
-        "height": 500
+        "height": 500, 
+        "minWidth": 300,
+        "focus": true,
+        "theme":null        
       }
     ],
     "security": {
       "csp": null
     }
   },
+  
   "bundle": {
     "active": true,
     "targets": "all",

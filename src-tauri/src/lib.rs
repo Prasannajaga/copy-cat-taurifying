@@ -1,14 +1,13 @@
-  
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+use active_win_pos_rs::get_active_window;
+use serde::Serialize;
+use tauri::Listener;
+use std::env;
+use std::fs;
+use std::path::PathBuf;
+use std::process::Command;
 use tauri::Manager;
 use tauri_plugin_clipboard::Clipboard;
-use serde::Serialize;
-use active_win_pos_rs::get_active_window;
-use std::fs;
-use std::env;
-use std::path::PathBuf;
-use std::process::Command; 
-
 
 #[derive(Serialize)]
 struct ClipboardData {
@@ -24,12 +23,11 @@ fn get_temp_directory() -> PathBuf {
     temp_dir
 }
 
-
 #[tauri::command]
 async fn get_clipboard_text(app: tauri::AppHandle) -> Result<ClipboardData, String> {
     let clipboard = app.state::<Clipboard>();
     let text = clipboard.read_text().map_err(|e| e.to_string())?;
-    
+
     let source = match get_active_window() {
         Ok(window) => window.app_name,
         Err(_) => "Unknown".to_string(),
@@ -41,19 +39,18 @@ async fn get_clipboard_text(app: tauri::AppHandle) -> Result<ClipboardData, Stri
 #[tauri::command]
 async fn set_clipboard_text(app: tauri::AppHandle, text: String) -> Result<(), String> {
     let clipboard = app.state::<Clipboard>();
-    clipboard.write_text(text)
-        .map_err(|e| e.to_string())
+    clipboard.write_text(text).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-async fn open_vscode(content: String , param1: String) {
-    // Get the temporary directory path 
+async fn open_vscode(content: String, param1: String) {
+    // Get the temporary directory path
     let temp_dir = get_temp_directory();
-    let file_path = temp_dir.join(param1); 
+    let file_path = temp_dir.join(param1);
 
     // Write clipboard content to a temporary file
     if let Err(err) = fs::write(&file_path, content) {
-        eprintln!("Failed to write file: {}", err); 
+        eprintln!("Failed to write file: {}", err);
         return;
     }
 
@@ -61,20 +58,62 @@ async fn open_vscode(content: String , param1: String) {
 
     // Open VS Code with the file
     let _output = Command::new("cmd")
-    .args(&["/C", vs_path, file_path.to_str().unwrap()])
-    .spawn()
-    .expect("Failed to open VS Code");
+        .args(&["/C", vs_path, file_path.to_str().unwrap()])
+        .spawn()
+        .expect("Failed to open VS Code");
 
-    println!("VS Code is opening in {}", temp_dir.display()); 
+    println!("VS Code is opening in {}", temp_dir.display());
 
     // "Sucess"
 }
 
 pub fn run() {
-    tauri::Builder::default() 
+    tauri::Builder::default()
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .setup(|app| {
+            let main_window = app.get_webview_window("main").unwrap();
+
+            main_window.clone().listen("global-click", move |_event| {
+                main_window.hide().unwrap(); // Hide window when clicking outside
+            });
+
+            Ok(())
+        })
+        // .setup(|app| {
+        //     #[cfg(desktop)]
+        //     {
+        //         use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
+        //         let handle = app.handle();
+        //         let ctrl_n_shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyZ);
+
+        //         handle.plugin(
+        //             tauri_plugin_global_shortcut::Builder::new().with_handler(move |_app, shortcut, event| {
+        //                 println!("{:?}", shortcut);
+        //                 if shortcut == &ctrl_n_shortcut {
+        //                     match event.state() {
+        //                       ShortcutState::Pressed => {
+        //                         println!("Print happend"); 
+        //                       }
+        //                       ShortcutState::Released => {
+        //                         println!("Print happend"); 
+        //                       }
+        //                     }
+        //                 }
+        //             })
+        //             .build(),
+        //         )?;
+
+        //         app.global_shortcut().register(ctrl_n_shortcut)?;
+        //     }
+        //     Ok(())
+        // })
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard::init())
-        .invoke_handler(tauri::generate_handler![get_clipboard_text, set_clipboard_text , open_vscode])
+        .invoke_handler(tauri::generate_handler![
+            get_clipboard_text,
+            set_clipboard_text,
+            open_vscode
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
