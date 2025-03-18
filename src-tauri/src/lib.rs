@@ -1,7 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 use active_win_pos_rs::get_active_window;
 use serde::Serialize;
-use tauri::Listener;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -13,7 +12,7 @@ use tauri_plugin_clipboard::Clipboard;
 struct ClipboardData {
     text: String,
     source: String,
-}
+} 
 
 fn get_temp_directory() -> PathBuf {
     let temp_dir = PathBuf::from("D:\\temp"); // Change this to your preferred directory
@@ -22,16 +21,21 @@ fn get_temp_directory() -> PathBuf {
     }
     temp_dir
 }
-
+ 
 #[tauri::command]
 async fn get_clipboard_text(app: tauri::AppHandle) -> Result<ClipboardData, String> {
-    let clipboard = app.state::<Clipboard>();
-    let text = clipboard.read_text().map_err(|e| e.to_string())?;
+    let clipboard = app.state::<Clipboard>(); 
+    
+    let text = match clipboard.read_text() {
+        Ok(t) => t,
+        Err(_) => "empty".to_string(),
+    };
 
     let source = match get_active_window() {
         Ok(window) => window.app_name,
         Err(_) => "Unknown".to_string(),
     };
+ 
 
     Ok(ClipboardData { text, source })
 }
@@ -40,6 +44,12 @@ async fn get_clipboard_text(app: tauri::AppHandle) -> Result<ClipboardData, Stri
 async fn set_clipboard_text(app: tauri::AppHandle, text: String) -> Result<(), String> {
     let clipboard = app.state::<Clipboard>();
     clipboard.write_text(text).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn clear_clipboard(app: tauri::AppHandle) -> Result<(), String> {
+    let clipboard: tauri::State<'_, Clipboard> = app.state::<Clipboard>();
+    clipboard.clear().map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -53,12 +63,19 @@ async fn open_vscode(content: String, param1: String) {
         eprintln!("Failed to write file: {}", err);
         return;
     }
-
-    let vs_path: &str = "C:\\Users\\prasa\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe";
+    println!("{}" , file_path.display());
+    println!("{}" , temp_dir.display());
+    // let vs_path: &str = "C:\\Users\\prasa\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe";
 
     // Open VS Code with the file
+    // let _output = Command::new("cmd")
+    //     .args(&["/C", vs_path, file_path.to_str().unwrap()])
+    //     .spawn()
+    //     .expect("Failed to open VS Code");
+
     let _output = Command::new("cmd")
-        .args(&["/C", vs_path, file_path.to_str().unwrap()])
+        .args(&["/C", "code ", file_path.to_str().unwrap()])
+        // .arg(file_path.to_str().unwrap()) // Pass the file path to VS Code
         .spawn()
         .expect("Failed to open VS Code");
 
@@ -69,16 +86,8 @@ async fn open_vscode(content: String, param1: String) {
 
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        .setup(|app| {
-            let main_window = app.get_webview_window("main").unwrap();
-
-            main_window.clone().listen("global-click", move |_event| {
-                main_window.hide().unwrap(); // Hide window when clicking outside
-            });
-
-            Ok(())
-        })
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build()) 
+        // listen for all events is here 
         // .setup(|app| {
         //     #[cfg(desktop)]
         //     {
@@ -112,7 +121,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_clipboard_text,
             set_clipboard_text,
-            open_vscode
+            open_vscode,
+            clear_clipboard
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

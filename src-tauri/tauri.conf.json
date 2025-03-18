@@ -3,7 +3,6 @@
   "productName": "copy-cat",
   "version": "0.1.0",
   "identifier": "com.copy-cat.org",
-  
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -15,17 +14,17 @@
       {
         "title": "copy-cat",
         "decorations": false,
-        "transparent": true, 
+        "transparent": true,  
         "alwaysOnTop": true,
+        "devtools": false,
         "skipTaskbar": true,
-        "resizable": true,
+        "resizable": true, 
         "fullscreen": false, 
         "visible": false,
         "maximized": false, 
         "width": 400,
         "height": 500, 
         "minWidth": 300,
-        "focus": true,
         "theme":null        
       }
     ],

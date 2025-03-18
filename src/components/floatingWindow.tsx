@@ -10,6 +10,7 @@ interface ClipboardItem {
 }
  
 const STORAGE_KEY = 'clipboard-history'; 
+const LAST_DELETED = 'LAST_DELETED'; 
 
 function FloatingWindow({element , callbackFn} : any) {
   
@@ -24,16 +25,22 @@ function FloatingWindow({element , callbackFn} : any) {
     const checkClipboard = async () => {
       try {
         const data = await invoke<any>('get_clipboard_text');
-        if (data.text && !items.some(x => x.text === data.text)) { 
-          const newItems = [{
-            text: data.text,
-            source: data.source,
-            active : true,
-            type : matchPattern(data.text)
-          }, ...items];
-          setItems(newItems);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(newItems));
+        let lastDeleted = localStorage.getItem(LAST_DELETED);
+        console.log("final value " , data , lastDeleted);
+        if(data && lastDeleted != data.text){
+          if(data.text && data.text!="empty" && !items.some(x => x.text === data.text)){
+              let d = {
+                text: data.text,
+                source: data.source,
+                active : true,
+                type : matchPattern(data.text)
+              };
+              setItems([d , ...items]);
+              localStorage.setItem(STORAGE_KEY, JSON.stringify([d , ...items]));
+          }
         }
+
+
       } catch (error) {
         console.error('Failed to read clipboard:', error);
       }
@@ -42,7 +49,6 @@ function FloatingWindow({element , callbackFn} : any) {
     const interval = setInterval(checkClipboard, 1000);
     return () => clearInterval(interval);
   }, [items]);
-  
 
   const handleCopy = async (text: any) => { 
     try {
@@ -52,10 +58,32 @@ function FloatingWindow({element , callbackFn} : any) {
     }
   };
 
-  const handleClearAll = (e:any) => {
-    e.preventDefault();
-    setItems([]);
-    localStorage.removeItem(STORAGE_KEY);
+  const handleClearAll = async () => {
+    try {
+      await invoke("clear_clipboard");
+      setItems([]);
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      
+    }
+  };
+
+  const handleClear = async (index : number) => {
+    try {
+      setItems(prev => {
+        const newItems = [...prev]; 
+        const deletedElement = newItems.splice(index, 1)[0]; 
+      
+        console.log("Deleted index:", deletedElement, newItems);
+        
+        if (deletedElement) {
+          localStorage.setItem(LAST_DELETED, deletedElement.text);
+        }
+        return newItems;
+      });
+    } catch (error) {
+      
+    }
   };
 
   // const filterApply = (val : string) => {
@@ -110,11 +138,11 @@ function FloatingWindow({element , callbackFn} : any) {
           <h5 ref={element} className="font-bold flex-1">🐱 copy_cat </h5>
           <div className='flex items-center gap-2'>
             {items.length > 0 && (
-              <svg onClick={handleClearAll} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+              <svg onClick={handleClearAll} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5 hover:stroke-red-600 duration-300">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
               </svg>
             )}
-            <svg onClick={callbackFn} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5 hover:bg-gray-400 hover:stroke-white duration-100">
+            <svg onClick={callbackFn} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5 hover:bg-gray-600/50 hover:stroke-white duration-300">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
           </div>
@@ -138,8 +166,8 @@ function FloatingWindow({element , callbackFn} : any) {
         <div className={`${isEmpty ? "w-full text-center mt-20" : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4"}`}>
           {!isEmpty ? filterMemo.map((item, index) => (
 
-            <div key={index}  className={`group bg-white rounded-lg shadow-md overflow-hidden cursor-pointer group-hover:shadow-lg transition-shadow h-36 flex flex-col relative 
-                 ${item.active ? "block" : "hidden"}`}
+            <div key={index}  className={`group bg-white rounded-lg shadow-md overflow-hidden cursor-pointer group-hover:shadow-lg transition-shadow h-28 flex flex-col relative 
+                 ${item.active ? "block" : "hidden"} animate-fadeIn`}
                   onClick={() => handleCopy(item.text) }
             >
               <div className={`flex items-center absolute gap-2 top-1 right-1 z-20`}>
@@ -147,10 +175,13 @@ function FloatingWindow({element , callbackFn} : any) {
                 <svg  onClick={() => openInVSCode(item)} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="stroke-black dark:stroke-white min-h-full w-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m6.75 7.5 3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z" />
                 </svg>
+                <svg onClick={() => handleClear(index)} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 hidden group-hover:block stroke-red-500">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+                </svg>
               </div>
 
 
-              <div className="flex-1 p-3 overflow-hidden opacity-60 hover:opacity-100 mt-6 mb-2">
+              <div className="flex-1 p-3 overflow-hidden opacity-60 group-hover:opacity-100 mt-6 mb-2">
                 <p className="text-gray-800 line-clamp-4">{item.text}</p>
               </div>
               <div className="source-theme">

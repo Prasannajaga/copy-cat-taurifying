@@ -22,7 +22,6 @@ export const TYPE_COLORS : Record<string , string> = {
 };
 
 
-
 export function matchPattern(text: string): string {
 
     for (const [language, pattern] of Object.entries(PATTERNS)) {
