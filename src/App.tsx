@@ -19,7 +19,7 @@ function App() {
 
     // shortcut listener
     const setupShortcut =  async () => {
-      const hotkey = "Ctrl+Shift+M";
+      const hotkey = "Ctrl+Shift+Z";
 
       try {
         const isRegister = await isRegistered(hotkey); 
@@ -58,9 +58,9 @@ function App() {
     setupShortcut();
 
     return () => {
-      // if(await isRegistered("Ctrl+Shift+M")){
+      // if(await isRegistered("Ctrl+Shift+Z")){
       try {
-        unregister("Ctrl+Shift+M");
+        unregister("Ctrl+Shift+Z");
         document.removeEventListener("mousedown" , handleDrag);
       } catch (error) {
         console.log("unmount error => " , error);
