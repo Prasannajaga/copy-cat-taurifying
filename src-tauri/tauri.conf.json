@@ -8,15 +8,14 @@
     "devUrl": "http://localhost:1420",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
-  },
+  }, 
   "app": {
     "windows": [
       {
         "title": "copy-cat",
         "decorations": false,
         "transparent": true,  
-        "alwaysOnTop": true,
-        "devtools": false,
+        "alwaysOnTop": true, 
         "skipTaskbar": true,
         "resizable": true, 
         "fullscreen": false, 

@@ -25,8 +25,7 @@ function FloatingWindow({element , callbackFn} : any) {
     const checkClipboard = async () => {
       try {
         const data = await invoke<any>('get_clipboard_text');
-        let lastDeleted = localStorage.getItem(LAST_DELETED);
-        console.log("final value " , data , lastDeleted);
+        let lastDeleted = localStorage.getItem(LAST_DELETED); 
         if(data && lastDeleted != data.text){
           if(data.text && data.text!="empty" && !items.some(x => x.text === data.text)){
               let d = {

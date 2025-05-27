@@ -75,9 +75,9 @@ async fn open_vscode(content: String, param1: String) {
 
     let _output = Command::new("cmd")
         .args(&["/C", "code ", file_path.to_str().unwrap()])
-        // .arg(file_path.to_str().unwrap()) // Pass the file path to VS Code
         .spawn()
-        .expect("Failed to open VS Code");
+        // .arg(file_path.to_str().unwrap()) // Pass the file path to VS Code
+         .expect("Failed to open VS Code");
 
     println!("VS Code is opening in {}", temp_dir.display());
 
@@ -87,6 +87,7 @@ async fn open_vscode(content: String, param1: String) {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_global_shortcut::Builder::new().build()) 
+        .plugin(tauri_plugin_notification::init()) 
         // listen for all events is here 
         // .setup(|app| {
         //     #[cfg(desktop)]
@@ -114,7 +115,7 @@ pub fn run() {
 
         //         app.global_shortcut().register(ctrl_n_shortcut)?;
         //     }
-        //     Ok(())
+        //     Ok(()) 
         // })
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard::init())
@@ -124,6 +125,18 @@ pub fn run() {
             open_vscode,
             clear_clipboard
         ])
+        .setup(|app| {
+
+            use tauri_plugin_notification::NotificationExt;
+            app.notification()
+                .builder()
+                .title("copy_cat")
+                .body("press CONTROL+SHIFT+Z to see it")
+                .show()
+                .unwrap();
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

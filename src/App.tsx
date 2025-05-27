@@ -3,19 +3,19 @@ import {useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";  
 import FloatingWindow from './components/floatingWindow';    
 import { isRegistered, register, unregister } from "@tauri-apps/plugin-global-shortcut";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import {debounce} from "lodash" 
-// import { Window } from "@tauri-apps/plugin-window";
+import { getCurrentWindow , getAllWindows} from "@tauri-apps/api/window";
+import {debounce} from "lodash"  
 
 
 
 function App() {
 
-  const [visible, setVisible] = useState(false); 
+  const [visible, setVisible] = useState(true); 
   const [appWindow] = useState(getCurrentWindow()); 
   const dragRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useEffect(() => { 
+    
 
     // shortcut listener
     const setupShortcut =  async () => {
@@ -23,6 +23,13 @@ function App() {
 
       try {
         const isRegister = await isRegistered(hotkey); 
+        const allWindow = await  getAllWindows();
+
+
+        
+        console.log("all" , allWindow);
+        console.log("current window " , appWindow);
+        
 
         if(!isRegister){
           await register(hotkey , toggleWindow);
@@ -74,7 +81,7 @@ function App() {
       setVisible((prev) => {
         const newState = !prev;
         if (newState) {
-          appWindow.show();
+          appWindow.show(); 
         } else {
           appWindow.hide();
         }
